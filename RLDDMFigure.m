@@ -3,6 +3,8 @@ addpath('Utilities')
 addpath('Data')
 %% Load Data
 [full_tbl, light_seq, rule_seq] = HDDM_setup(false);
+bad_sessions=[109,121];
+full_tbl = full_tbl(~ismember(bad_sessions,full_tbl.split_by),:);
 ndr = nnz(full_tbl.response==-1)/height(full_tbl);
 lapse_rate = 0.01;
 full_tbl.rt = abs(full_tbl.rt);
@@ -99,18 +101,18 @@ for I=1:size(includes,1)
         correct_temp = false(T/slices, N);
         Q = [qs_temp(1), qs_temp(1), ql_temp(1)];
         Q_hat = [qs_temp(1), qs_temp(1), ql_temp(1)];
-        ses = 1;
         blockNum = 1;
         for j=1:T/slices
+            ses = 0;
             for i=1:N
                 if i == 1 || full_tbl.split_by(i) ~= full_tbl.split_by(i-1)
                     if i~= 1
                         rn_temp(j,ses) = rn_temp(j,ses) + (blockNum - 1) / 5;
                     end
-                    Q = [0.33, 0.33, 0.67];
-                    Q_hat = [0.33, 0.33, 0.67];
+                    Q = [qs_temp(j), qs_temp(j), ql_temp(j)];
+                    Q_hat = [qs_temp(j), qs_temp(j), ql_temp(j)];
                     blockNum = 1;
-                    ses = full_tbl.split_by(i);
+                    ses = ses + 1;
                 end
                 if full_tbl.stim(i)
                     alpha_t = a_temp(j, full_tbl.subj_idx(i)) + a_stim_temp(j, full_tbl.subj_idx(i)) * include(1);
@@ -218,6 +220,9 @@ RT_mat=cell2mat(cellfun(@(x) transpose(x),RT,'UniformOutput',false)');
 dV_full_mat = cell2mat(cellfun(@(x) x(:,:,1)',Vs,'UniformOutput',false)) - cell2mat(cellfun(@(x) x(:,:,2)',Vs,'UniformOutput',false));
 dV_hat_full_mat = cell2mat(cellfun(@(x) x(:,:,1)',Vs_hat,'UniformOutput',false)) - cell2mat(cellfun(@(x) x(:,:,2)',Vs_hat,'UniformOutput',false));
 choices_mat = cell2mat(cellfun(@(x) transpose(x),choices,'UniformOutput',false)');
+rule_num_mat = cell2mat(rule_num);
+correct_full_mat = cell2mat(cellfun(@(x) transpose(x),correct_full,'UniformOutput',false)');
+rule_mat = cell2mat(cellfun(@(x) transpose(x),rule,'UniformOutput',false)');
 
 %% setup
 figure('Renderer', 'painters', 'Position', [100 1 1080 1080])
@@ -391,6 +396,9 @@ for i=1:size(mid_params,2)
     h=sorted(0.975*length(sorted));
     plot_95kd(normed,'c',[247,119,110]/255,@(x, M)0.9*x/M-(i-1))
     disp(nnz(abs(normed)<effect_size)/length(normed)*100)
+    disp(nnz(normed>0)/length(normed)*100)
+    disp(median(normed))
+    disp(' ')
 end
 patch('XData',effect_size*[-1,1,1,-1],'YData',[1,1,1-size(mid_params,2),1-size(mid_params,2)],'EdgeColor','none','FaceColor',[0.9,0.9,0.9],'FaceAlpha',0.3)
 yticks(1-size(mid_params,2):0)
@@ -430,6 +438,123 @@ set(gca,'fontsize',18)
 xticks([0,50,100])
 xlim([-10,100])
 
+%% Supplemental Figure
+figure('Renderer', 'painters', 'Position', [100 1 1080 1080])
+%ha = tight_subplot(2, 2, 0.05, 0.1, 0.05);
+setappdata(gcf, 'SubplotDefaultAxesLocation', [0, 0, 1, 1]);
+
+%% A
+diq = [14248.134496890065, 14251.325314016845, 14252.059369716324, 14251.481475015062;
+       14586.649038762325, 14580.88372054762, 14581.65040956457, 14590.874423258996;
+       15226.503353013615, 15228.863468216718, 15229.57077875421, 15227.075240536517;
+       15044.694554565267, 15046.391303344506, 15048.499382123087, 15047.234368966876;
+       15522.173204067321, 15520.447252815724, 15526.486009003931, 15524.739081415728;
+       15662.549464514876, 15665.276412214913, 15666.003955551743, 15663.13747151322;
+       15603.20163034262, 15603.645197478056, 15601.546380514454, 15607.846798123324;
+       16016.784385997948, 16015.49341265982, 16019.568097128431, 16017.608076759381];
+
+subplot_tight(4,3,1)
+barh(mean(diq,2), 'EdgeColor', 'none')
+xlim([1.4e4, 1.65e4])
+yticklabels(["Base Model", "No B/G", "No G/F", "No B/F", "No B", "No G", "No F", "Full Model"])
+box off
+set(gca,'fontsize',18)
+xlabel('DIC')
+set(gca,'linewidth',2)
+set(gca,'fontname','Helvetica')
+
+%% B
+subplot_tight(4,3,2)
+sessions = unique(full_tbl.split_by);
+acc_side = zeros(length(sessions), 4000);
+acc_light = zeros(length(sessions), 4000);
+rat_side = zeros(size(sessions));
+rat_light = zeros(size(sessions));
+for i=1:length(sessions)
+    rule_seg = rule_mat(full_tbl.split_by==i,:);
+    correct_seg = correct_full_mat(full_tbl.split_by==i,:);
+    acc_side(i,:) = sum(correct_seg.*~rule_seg)./sum(~rule_seg);
+    acc_light(i,:) = sum(correct_seg.*rule_seg)./sum(rule_seg);
+    tbl_seg = full_tbl(full_tbl.split_by==i,:);
+    rat_side(i) = mean(tbl_seg.feedback(~tbl_seg.rule));
+    rat_light(i) = mean(tbl_seg.feedback(tbl_seg.rule));
+end
+hold on
+pts = 0:0.005:1;
+for i=1:50:4000
+    plot(pts,ksdensity(acc_side(:,i),pts), 'Color',[0.31,0.73,0.90,0.05])
+end
+for i=1:50:4000
+    plot(pts,ksdensity(acc_light(:,i),pts), 'Color', [0.83,0.07,0.82,0.05])
+end
+plot(pts,ksdensity(rat_side, pts),'Color',[0.31,0.73,0.90],'LineWidth',2)
+plot(pts,ksdensity(rat_light, pts),'Color',[0.83,0.07,0.82],'LineWidth',2)
+set(gca,'fontsize',18)
+xlabel('Accuracy')
+yticks([])
+ylim([0,8])
+set(gca,'linewidth',2)
+set(gca,'fontname','Helvetica')
+
+%% C
+subplot_tight(4,3,3)
+hold on
+pts = 0:0.001:5;
+stims = full_tbl.stim==1;
+all_vals = zeros(size(pts));
+bw = 0.05;
+for s = 1:slices
+    for i=1:50:T/slices
+        temp = RT{s}(i,:);
+        temp1 = squeeze(temp(stims));
+        temp1=rmmissing(temp1(temp1>0));
+        temp2 = squeeze(temp(~stims));
+        temp2=rmmissing(temp2(temp2>0));
+        if ~isempty(temp1)
+            vals = ksdensity(temp2,pts,'bandwidth',bw);
+            plot(pts, vals, "Color",[0.6,0.6,0.6,0.05])
+            vals = ksdensity(temp1,pts,'bandwidth',bw);
+            plot(pts, vals, "Color",[0.949,0.631,0.008,0.05])
+            all_vals = all_vals + vals;
+        end
+    end
+end
+hold on
+vals=ksdensity(squeeze(full_tbl.rt(~stims&full_tbl.rt>-1)),pts,'bandwidth',bw);
+plot(pts, vals, "Color",[0.6,0.6,0.6],'LineWidth',1.5)
+vals=ksdensity(squeeze(full_tbl.rt(stims&full_tbl.rt>-1)),pts,'bandwidth',bw);
+plot(pts, vals, "Color",[0.949,0.631,0.008],'LineWidth',1.5)
+xticks(0:3)
+xlim([0,3])
+xlabel('RT (s)')
+yticks([])
+set(gca,'fontsize',18)
+set(gca,'linewidth',2)
+set(gca,'fontname','Helvetica')
+
+%% D
+subplot_tight(4,6,[8,9])
+hold on
+plot_95kd(reshape(sum(RT_mat(full_tbl.stim==0,:).*(choices_mat(full_tbl.stim==0,:)~=-1),1),1,[])./reshape(sum((choices_mat(full_tbl.stim==0,:)~=-1),1),1,[]), 'c',[0.6,0.6,0.6])
+plot_95kd(reshape(sum(RT_mat(full_tbl.stim==1,:).*(choices_mat(full_tbl.stim==1,:)~=-1),1),1,[])./reshape(sum((choices_mat(full_tbl.stim==1,:)~=-1),1),1,[]), 'c',[0.949,0.631,0.008])
+xline(mean(full_tbl.rt(full_tbl.stim==0&full_tbl.rt>-1)),'--','LineWidth',2,'Color','k')
+xline(mean(full_tbl.rt(full_tbl.stim==1&full_tbl.rt>-1)),'--','LineWidth',2,'Color','k')
+set(gca,'fontsize',18)
+yticks([])
+xlabel('RT (s)')
+set(gca,'linewidth',2)
+set(gca,'fontname','Helvetica')
+
+%% E
+subplot_tight(4,6,[10,11])
+plot_95kd(mean(rule_num_mat,2)-1, 'c',[247,119,110]/255)
+yticks([])
+xline(8,'k--','LineWidth',2)
+xlabel('Rules Completed')
+set(gca,'fontsize',18)
+set(gca,'linewidth',2)
+
+%%
 function plot_95kd(data,c1,c2,warp)
     [ad, ax] = ksdensity(data,'NumPoints',1000);
     sorted=sort(data);

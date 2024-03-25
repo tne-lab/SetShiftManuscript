@@ -1,6 +1,6 @@
 function [full_tbl, light_seq, rule_seq] = HDDM_setup(remove_omissions)
-    load('allBehav.mat')
-    bn = load('allBehav2.mat');
+    load('Data/allBehav.mat')
+    bn = load('Data/allBehav2.mat');
     behavior = rmfield(behavior, 'drug');
     behavior=[behavior, bn.behavior(2:5)];
     behav_sub = behavior;
@@ -61,6 +61,7 @@ function [full_tbl, light_seq, rule_seq] = HDDM_setup(remove_omissions)
                     full_tbl.frontMostLast(ind:ind+len-1)=NaN;
                     full_tbl.rearMostLast(ind:ind+len-1)=NaN;
                 end
+                full_tbl.ruleFull(ind:ind+len-1)=[behav_sub(sub_rats(i)).sessions{j}.rule];
                 ind=ind+len;
                 ses=ses+1;
             end

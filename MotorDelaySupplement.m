@@ -1,7 +1,7 @@
 %% Load data
-motor_data = readtable('OF_data.xlsx');
-load('allBehav.mat')
-bn = load('allBehav2.mat');
+motor_data = readtable('Data/OF_data.xlsx');
+load('Data/allBehav.mat')
+bn = load('Data/allBehav2.mat');
 behavior = rmfield(behavior, 'drug');
 behavior=[behavior, bn.behavior(2:5)];
 behav_sub = behavior;
@@ -48,6 +48,7 @@ setappdata(gcf, 'SubplotDefaultAxesLocation', [0, 0, 1, 1]);
 subplot_tight(3,2,1)
 sub_tbl = full_tbl(~isnan(full_tbl.speed),:);
 immmdl = fitglme(sub_tbl, 'RT ~ 1 + immobility + (1|Rat)', 'Distribution', 'gamma', 'link', 'identity');
+im_stim_mdl = fitglme(motor_data, 'middle_body_time_stationary~1+Stim+(1|Subject)','Distribution','gamma','link','identity');
 im = 0:5:600;
 rt = -0.5:0.01:0.5;
 temp3 = normalized_ks(immmdl,sub_tbl.immobility,sub_tbl.RT,im,rt);
@@ -67,6 +68,7 @@ yticks([-0.5,0,0.5])
 subplot_tight(3,2,2)
 sub_tbl = full_tbl(~isnan(full_tbl.distance),:);
 dsmdl = fitglme(sub_tbl, 'RT ~ 1 + distance + (1|Rat)', 'Distribution', 'gamma', 'link', 'identity');
+ds_stim_mdl = fitglme(motor_data, 'traveled_distance_cm~1+Stim+(1|Subject)','Distribution','gamma','link','identity');
 ds = 1000:5:2000;
 rt = -0.5:0.01:0.5;
 temp3 = normalized_ks(dsmdl,sub_tbl.distance,sub_tbl.RT,ds,rt);
@@ -84,6 +86,7 @@ set(gca,'fontsize',18)
 subplot_tight(3,2,3)
 sub_tbl = full_tbl(~isnan(full_tbl.speed),:);
 spmdl = fitglme(sub_tbl, 'RT ~ 1 + speed + (1|Rat)', 'Distribution', 'gamma', 'link', 'identity');
+sp_stim_mdl = fitglme(motor_data, 'speed_moving_cm_s~1+Stim+(1|Subject)','Distribution','gamma','link','identity');
 sp = 0.3:0.01:0.9;
 rt = -0.5:0.01:0.5;
 temp3 = normalized_ks(spmdl,sub_tbl.speed,sub_tbl.RT,sp,rt);
@@ -101,6 +104,7 @@ set(gca,'fontsize',18)
 %% d
 sub_tbl = full_tbl(~isnan(full_tbl.DT),:);
 itimdl = fitglme(sub_tbl, 'RT ~ 1 + DT + (1|Rat)', 'Distribution', 'gamma', 'link', 'identity');
+dt_stim_mdl = fitglme(sub_tbl, 'DT~1+Stim+(1|Rat)','Distribution','gamma','link','identity');
 dt = 0:0.1:16;
 rt = -0.5:0.01:0.5;
 temp3 = normalized_ks(itimdl,sub_tbl.DT,sub_tbl.RT,dt,rt);

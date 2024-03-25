@@ -19,6 +19,7 @@ full_tbl.Properties.VariableNames = {'RT','Rat','Session','Stim','Site','Light',
 sites=["mid","dorsomedial","ventral","dorsolateral"];
 ind=1;
 ses=1;
+bad_sessions = [231, 243]
 for i=1:length(sub_rats)
     for j=1:length(behav_sub(sub_rats(i)).sessions)
         if (sub_rats(i)~=13||j~=4)

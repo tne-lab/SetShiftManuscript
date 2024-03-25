@@ -266,6 +266,19 @@ mdl4=mdltostruct(fitglme(shifted_iti_tbl(shifted_iti_tbl.notequalLast==1,:),'Mor
 mdl5=mdltostruct(fitglme(iti_tbl(iti_tbl.notequalLast==1,:),'LeftChosen~1+MoreLeftLateITI*LightChosen+(1|Rat)','Distribution','Binomial'));
 mdl6=mdltostruct(fitglme(iti_tbl,'RT~1+MidPokeLateITI+MorePreChoiceLateITI+MoreNonPreChoiceLateITI+MidPokeLateITI:MorePreChoiceLateITI+(1|Rat)','Distribution','Gamma','link','identity'));
 reg2latex({mdl1,mdl2,mdl3,mdl4,mdl5,mdl6},'filename','Tables/myTable1.tex');
+
+fitglme(shifted_iti_tbl(shifted_iti_tbl.notequalEarly==1&shifted_iti_tbl.CorrectTrial,:),'MoreLeftEarlyITI~1+LeftCorrect+(1|Rat)','Distribution','Binomial')
+fitglme(shifted_iti_tbl(shifted_iti_tbl.notequalLast==1&shifted_iti_tbl.CorrectTrial,:),'MoreLeftLateITI~1+LeftCorrect+(1|Rat)','Distribution','Binomial')
+fitglme(shifted_iti_tbl(shifted_iti_tbl.notequalEarly==1&~shifted_iti_tbl.CorrectTrial,:),'MoreLeftEarlyITI~1+LeftCorrect+(1|Rat)','Distribution','Binomial')
+fitglme(shifted_iti_tbl(shifted_iti_tbl.notequalLast==1&~shifted_iti_tbl.CorrectTrial,:),'MoreLeftLateITI~1+LeftCorrect+(1|Rat)','Distribution','Binomial')
+fitglme(shifted_iti_tbl,'NumCorrectPokeEarlyITI~1+CorrectTrial+(1|Rat)','Distribution','Poisson','link','identity')
+fitglme(shifted_iti_tbl,'NumCorrectPokeLateITI~1+CorrectTrial+(1|Rat)','Distribution','Poisson','link','identity')
+fitglme(iti_tbl(iti_tbl.notequalLast==1&~iti_tbl.LightChosen,:),'LeftChosen~1+MoreLeftLateITI+(1|Rat)','Distribution','Binomial')
+fitglme(iti_tbl(iti_tbl.notequalLast==1&iti_tbl.LightChosen,:),'LeftChosen~1+MoreLeftLateITI+(1|Rat)','Distribution','Binomial')
+fitglme(iti_tbl,'RT~1+MidPokeLateITI+MorePreChoiceLateITI+MoreNonPreChoiceLateITI+MidPokeLateITI:MorePreChoiceLateITI+(1|Rat)','Distribution','Gamma','link','identity')
+fitglme(iti_tbl(~isnan(iti_tbl.MidPokeLateITI),:),'MidPokeLateITI~1+Stim+(1|Rat)','Distribution','Binomial')
+fitglme(iti_tbl(~isnan(iti_tbl.MorePreChoiceLateITI),:),'MorePreChoiceLateITI~1+Stim+(1|Rat)','Distribution','Binomial')
+fitglme(iti_tbl(~isnan(iti_tbl.MoreNonPreChoiceLateITI),:),'MoreNonPreChoiceLateITI~1+Stim+(1|Rat)','Distribution','Binomial')
 %% setup
 figure('Renderer', 'painters', 'Position', [100 100 1600 900])
 %ha = tight_subplot(2, 2, 0.05, 0.1, 0.05);
@@ -418,9 +431,9 @@ stim = false(S,1);
 for i=1:S
     subtbl = full_tbl(full_tbl.Session==i,:);
     stim(i) = subtbl.Stim(1) == 1;
-    Mid(i) = nanmean(subtbl.midPokeLast);
-    Choice(i) = nanmean(((subtbl.Choice==1)&(subtbl.frontMostLast==1))|((subtbl.Choice==2)&(subtbl.rearMostLast==1)));
-    NonChoice(i) = nanmean(((subtbl.Choice==2)&(subtbl.frontMostLast==1))|((subtbl.Choice==1)&(subtbl.rearMostLast==1)));
+    Mid(i) = nanmean(subtbl.MidPokeLateITI);
+    Choice(i) = nanmean(subtbl.MorePreChoiceLateITI);
+    NonChoice(i) = nanmean(subtbl.MoreNonePreChoiceLateITI);
 end
 valid = ~isnan(Mid);
 subplot_tight(2,6,[11,12])
