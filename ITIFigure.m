@@ -265,7 +265,6 @@ mdl3=mdltostruct(fitglme(shifted_iti_tbl(shifted_iti_tbl.notequalEarly==1,:),'Mo
 mdl4=mdltostruct(fitglme(shifted_iti_tbl(shifted_iti_tbl.notequalLast==1,:),'MoreLeftLateITI~1+CorrectTrial*LeftCorrect+(1|Rat)','Distribution','Binomial'));
 mdl5=mdltostruct(fitglme(iti_tbl(iti_tbl.notequalLast==1,:),'LeftChosen~1+MoreLeftLateITI*LightChosen+(1|Rat)','Distribution','Binomial'));
 mdl6=mdltostruct(fitglme(iti_tbl,'RT~1+MidPokeLateITI+MorePreChoiceLateITI+MoreNonPreChoiceLateITI+MidPokeLateITI:MorePreChoiceLateITI+(1|Rat)','Distribution','Gamma','link','identity'));
-reg2latex({mdl1,mdl2,mdl3,mdl4,mdl5,mdl6},'filename','Tables/myTable1.tex');
 
 fitglme(shifted_iti_tbl(shifted_iti_tbl.notequalEarly==1&shifted_iti_tbl.CorrectTrial,:),'MoreLeftEarlyITI~1+LeftCorrect+(1|Rat)','Distribution','Binomial')
 fitglme(shifted_iti_tbl(shifted_iti_tbl.notequalLast==1&shifted_iti_tbl.CorrectTrial,:),'MoreLeftLateITI~1+LeftCorrect+(1|Rat)','Distribution','Binomial')
@@ -284,48 +283,6 @@ figure('Renderer', 'painters', 'Position', [100 100 1600 900])
 %ha = tight_subplot(2, 2, 0.05, 0.1, 0.05);
 setappdata(gcf, 'SubplotDefaultAxesLocation', [0, 0, 1, 1]);
 %% a
-S = max(full_tbl.Session);
-corrChoice=zeros(S,1);
-corrNChoice=zeros(S,1);
-corrChoiceLate=zeros(S,1);
-corrNChoiceLate=zeros(S,1);
-for i=1:S
-    subtbl = full_tbl(full_tbl.Session==i,:);
-    shiftbl = subtbl(2:end,:);
-    corrChoice(i)=nanmean(shiftbl.prechoiceMostFirst(subtbl.Correct(1:end-1)&(subtbl.prechoiceMostFirst(2:end)==1|subtbl.nonprechoiceMostFirst(2:end)==1)));
-    corrNChoice(i)=nanmean(shiftbl.nonprechoiceMostFirst(subtbl.Correct(1:end-1)&(subtbl.prechoiceMostFirst(2:end)==1|subtbl.nonprechoiceMostFirst(2:end)==1)));
-    corrChoiceLate(i)=nanmean(shiftbl.prechoiceMostLast(subtbl.Correct(1:end-1)&(subtbl.prechoiceMostLast(2:end)==1|subtbl.nonprechoiceMostLast(2:end)==1)));
-    corrNChoiceLate(i)=nanmean(shiftbl.nonprechoiceMostLast(subtbl.Correct(1:end-1)&(subtbl.prechoiceMostLast(2:end)==1|subtbl.nonprechoiceMostLast(2:end)==1)));
-end
-corrChoice = rmmissing(corrChoice); corrNChoice = rmmissing(corrNChoice);
-corrChoiceLate = rmmissing(corrChoiceLate); corrNChoiceLate = rmmissing(corrNChoiceLate);
-subplot_tight(2,6,[1,2,3])
-hold on
-plot(times,ratsCorrectMid','Color',[1,0.604,0,0.2],'LineWidth',1.5)
-plot(times,ratsCorrectMatch','Color',[0.133,0.545,0.133,0.2],'LineWidth',1.5)
-plot(times,ratsCorrectNonMatch','Color',[0.796,0.377,0.082,0.2],'LineWidth',1.5)
-plot(times,mean(ratsCorrectMid),'Color',[1,0.604,0],'LineWidth',2)
-plot(times,mean(ratsCorrectMatch),'Color',[0.133,0.545,0.133],'LineWidth',2)
-plot(times,mean(ratsCorrectNonMatch),'Color',[0.796,0.377,0.082],'LineWidth',2)
-xlabel('Time Since Start of ITI (s)')
-title('Post-Correct Trial')
-ylabel('Poke Density')
-set(gca,'fontsize',18)
-yticks(0:0.3:0.9)
-xlim([0,7])
-ylim([0,0.9])
-axes('Position',[.11 .75 .1 .1])
-box on
-al_goodplot2({corrChoice,corrNChoice}', 'pos', [1,1], 'type', {'left','right'},'boxw',0.4,'col',[0.133,0.545,0.133;0.796,0.377,0.082]);
-xticks([])
-xlabel('Early Comparison')
-ylabel(["Trial Proportion With","More of Poke Type"])
-axes('Position',[.275 .75 .1 .1])
-box on
-al_goodplot2({corrChoiceLate,corrNChoiceLate}', 'pos', [1,1], 'type', {'left','right'},'boxw',0.4,'col',[0.133,0.545,0.133;0.796,0.377,0.082]);
-xticks([])
-xlabel('Late Comparison')
-%% b
 icorrChoice=zeros(S,1);
 icorrNChoice=zeros(S,1);
 icorrChoiceLate=zeros(S,1);
@@ -333,15 +290,15 @@ icorrNChoiceLate=zeros(S,1);
 for i=1:S
     subtbl = full_tbl(full_tbl.Session==i,:);
     shiftbl = subtbl(2:end,:);
-    icorrChoice(i)=nanmean(shiftbl.prechoiceMostFirst(~subtbl.Correct(1:end-1)&(subtbl.prechoiceMostFirst(2:end)==1|subtbl.nonprechoiceMostFirst(2:end)==1)));
-    icorrNChoice(i)=nanmean(shiftbl.nonprechoiceMostFirst(~subtbl.Correct(1:end-1)&(subtbl.prechoiceMostFirst(2:end)==1|subtbl.nonprechoiceMostFirst(2:end)==1)));
-    icorrChoiceLate(i)=nanmean(shiftbl.prechoiceMostLast(~subtbl.Correct(1:end-1)&(subtbl.prechoiceMostLast(2:end)==1|subtbl.nonprechoiceMostLast(2:end)==1)));
-    icorrNChoiceLate(i)=nanmean(shiftbl.nonprechoiceMostLast(~subtbl.Correct(1:end-1)&(subtbl.prechoiceMostLast(2:end)==1|subtbl.nonprechoiceMostLast(2:end)==1)));
+    icorrChoice(i)=nanmean(shiftbl.prechoiceMostFirst(~subtbl.CorrectTrial(1:end-1)&(subtbl.prechoiceMostFirst(2:end)==1|subtbl.nonprechoiceMostFirst(2:end)==1)));
+    icorrNChoice(i)=nanmean(shiftbl.nonprechoiceMostFirst(~subtbl.CorrectTrial(1:end-1)&(subtbl.prechoiceMostFirst(2:end)==1|subtbl.nonprechoiceMostFirst(2:end)==1)));
+    icorrChoiceLate(i)=nanmean(shiftbl.MorePreChoiceLateITI(~subtbl.CorrectTrial(1:end-1)&(subtbl.MorePreChoiceLateITI(2:end)==1|subtbl.MoreNonPreChoiceLateITI(2:end)==1)));
+    icorrNChoiceLate(i)=nanmean(shiftbl.MoreNonPreChoiceLateITI(~subtbl.CorrectTrial(1:end-1)&(subtbl.MorePreChoiceLateITI(2:end)==1|subtbl.MoreNonPreChoiceLateITI(2:end)==1)));
 end
 icorrChoice = rmmissing(icorrChoice); icorrNChoice = rmmissing(icorrNChoice);
 icorrChoiceLate = rmmissing(icorrChoiceLate); icorrNChoiceLate = rmmissing(icorrNChoiceLate);
 
-subplot_tight(2,6,[4,5,6])
+subplot_tight(2,6,[1,2,3])
 hold on
 plot(times,ratsIncorrectMid','Color',[1,0.604,0,0.2],'LineWidth',1.5)
 plot(times,ratsIncorrectMatch','Color',[0.133,0.545,0.133,0.2],'LineWidth',1.5)
@@ -360,13 +317,55 @@ axes('Position',[.65 .75 .1 .1])
 box on
 al_goodplot2({icorrChoice,icorrNChoice}', 'pos', [1,1], 'type', {'left','right'},'boxw',0.4,'col',[0.133,0.545,0.133;0.796,0.377,0.082]);
 xticks([])
-xlabel('Early Comparison')
+xlabel('Early Window')
 ylabel(["Trial Proportion With","More of Poke Type"])
 axes('Position',[.825 .75 .1 .1])
 box on
 al_goodplot2({icorrChoiceLate,icorrNChoiceLate}', 'pos', [1,1], 'type', {'left','right'},'boxw',0.4,'col',[0.133,0.545,0.133;0.796,0.377,0.082]);
 xticks([])
-xlabel('Late Comparison')
+xlabel('Late Window')
+%% b
+S = max(full_tbl.Session);
+corrChoice=zeros(S,1);
+corrNChoice=zeros(S,1);
+corrChoiceLate=zeros(S,1);
+corrNChoiceLate=zeros(S,1);
+for i=1:S
+    subtbl = full_tbl(full_tbl.Session==i,:);
+    shiftbl = subtbl(2:end,:);
+    corrChoice(i)=nanmean(shiftbl.prechoiceMostFirst(subtbl.CorrectTrial(1:end-1)&(subtbl.prechoiceMostFirst(2:end)==1|subtbl.nonprechoiceMostFirst(2:end)==1)));
+    corrNChoice(i)=nanmean(shiftbl.nonprechoiceMostFirst(subtbl.CorrectTrial(1:end-1)&(subtbl.prechoiceMostFirst(2:end)==1|subtbl.nonprechoiceMostFirst(2:end)==1)));
+    corrChoiceLate(i)=nanmean(shiftbl.MorePreChoiceLateITI(subtbl.CorrectTrial(1:end-1)&(subtbl.MorePreChoiceLateITI(2:end)==1|subtbl.MoreNonPreChoiceLateITI(2:end)==1)));
+    corrNChoiceLate(i)=nanmean(shiftbl.MoreNonPreChoiceLateITI(subtbl.CorrectTrial(1:end-1)&(subtbl.MorePreChoiceLateITI(2:end)==1|subtbl.MoreNonPreChoiceLateITI(2:end)==1)));
+end
+corrChoice = rmmissing(corrChoice); corrNChoice = rmmissing(corrNChoice);
+corrChoiceLate = rmmissing(corrChoiceLate); corrNChoiceLate = rmmissing(corrNChoiceLate);
+subplot_tight(2,6,[4,5,6])
+hold on
+plot(times,ratsCorrectMid','Color',[1,0.604,0,0.2],'LineWidth',1.5)
+plot(times,ratsCorrectMatch','Color',[0.133,0.545,0.133,0.2],'LineWidth',1.5)
+plot(times,ratsCorrectNonMatch','Color',[0.796,0.377,0.082,0.2],'LineWidth',1.5)
+plot(times,mean(ratsCorrectMid),'Color',[1,0.604,0],'LineWidth',2)
+plot(times,mean(ratsCorrectMatch),'Color',[0.133,0.545,0.133],'LineWidth',2)
+plot(times,mean(ratsCorrectNonMatch),'Color',[0.796,0.377,0.082],'LineWidth',2)
+xlabel('Time Since Start of ITI (s)')
+title('Post-Correct Trial')
+ylabel('Poke Density')
+set(gca,'fontsize',18)
+yticks(0:0.3:0.9)
+xlim([0,7])
+ylim([0,0.9])
+axes('Position',[.11 .75 .1 .1])
+box on
+al_goodplot2({corrChoice,corrNChoice}', 'pos', [1,1], 'type', {'left','right'},'boxw',0.4,'col',[0.133,0.545,0.133;0.796,0.377,0.082]);
+xticks([])
+xlabel('Early Window')
+ylabel(["Trial Proportion With","More of Poke Type"])
+axes('Position',[.275 .75 .1 .1])
+box on
+al_goodplot2({corrChoiceLate,corrNChoiceLate}', 'pos', [1,1], 'type', {'left','right'},'boxw',0.4,'col',[0.133,0.545,0.133;0.796,0.377,0.082]);
+xticks([])
+xlabel('Late Window')
 %% c
 S = max(full_tbl.Session);
 lcFront = zeros(S,1);

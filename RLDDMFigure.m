@@ -4,7 +4,7 @@ addpath('Data')
 %% Load Data
 [full_tbl, light_seq, rule_seq] = HDDM_setup(false);
 bad_sessions=[109,121];
-full_tbl = full_tbl(~ismember(bad_sessions,full_tbl.split_by),:);
+full_tbl = full_tbl(~ismember(full_tbl.split_by,bad_sessions),:);
 ndr = nnz(full_tbl.response==-1)/height(full_tbl);
 lapse_rate = 0.01;
 full_tbl.rt = abs(full_tbl.rt);
@@ -42,7 +42,6 @@ qL_trace = table2array(traces(:, startsWith(names, 'qL')));
 T = height(traces);
 N = height(full_tbl);
 S = length(unique(full_tbl.split_by));
-subjects = full_tbl.subj_idx([1;find(diff(full_tbl.split_by)~=0)+1]);
 
 slices = 32;
 slice = reshape(1:T, [], slices)';
@@ -57,11 +56,11 @@ Vs = cell(slices,1);
 Vs_hat = cell(slices,1);
 b_full = cell(slices,1);
 
-includes = [0,0,0;1,0,0;0,1,0;0,0,1;1,1,0;0,1,1;1,0,1;1,1,1];
+includes = [1,1,1];
 RTMats = cell(size(includes,1),1);
 correctMats = cell(size(includes,1),1);
 rng(626)
-parpool(16)
+% parpool(16)
 for I=1:size(includes,1)
     include = includes(I,:);
     parfor s=1:slices
@@ -382,6 +381,38 @@ xticks([0.35,0.5,0.65])
 xlim([0.35,0.65])
 set(gca,'fontsize',18)
 
+%%
+full_tbl.choiceTotal = full_tbl.frontTotal;
+full_tbl.choiceTotal(full_tbl.response==2) = full_tbl.rearTotal(full_tbl.response==2);
+full_tbl.nonchoiceTotal = full_tbl.frontTotal;
+full_tbl.nonchoiceTotal(full_tbl.response==1) = full_tbl.rearTotal(full_tbl.response==1);
+% subplot_tight(4,4,8)
+points = 0:0.001:0.15;
+choice_curves = zeros(length(points),T);
+rng(626)
+valid=full_tbl.rt>0&~isnan(full_tbl.frontMostLast)&full_tbl.stim==0;
+var=full_tbl.choiceTotal(valid)>0;
+for i=1:T
+    [temp,I]=sort(abs(b_full_mat(valid,i)-0.5)+rand(nnz(valid),1)*10e-6);
+    choice_curves(:,i)=interp1(temp,movmean(var(I),0.1,'samplepoints',temp),points);
+    disp(i)
+end
+choice_curves(isnan(choice_curves))=0;
+mcurve = median(choice_curves,2);
+sor_curve = (sort(choice_curves,2));
+lcurve = sor_curve(:,0.025*4000);
+hcurve = sor_curve(:, 0.975*4000);
+hold on
+patch('XData',[points,flip(points)], 'YData', [lcurve;flip(hcurve)],'FaceColor',[180,0,255]/255,'EdgeColor','none','FaceAlpha',0.3)
+plot(points,mcurve,'Color',[180,0,255]/255,'LineWidth',2)
+xlabel('Bias')
+ylabel('Proportion of Left ITI Pokes')
+axis tight
+% ylim([0,1])
+% yticks(0:0.5:1)
+% xticks([0.35,0.5,0.65])
+xlim([0,0.15])
+set(gca,'fontsize',18)
 %% E
 mid_params=[traces.a_stim,traces.v_stim,traces.zt_stim, traces.t_stim,traces.alpha_stim,traces.forg_stim,traces.surp_stim];
 mid_stds=[traces.a_std,traces.v_std,traces.zt_std,traces.t_std,traces.alpha_std,traces.forg_std,traces.surp_std];

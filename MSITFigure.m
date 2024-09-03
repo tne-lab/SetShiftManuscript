@@ -5,7 +5,7 @@ traces = readtable('Data/msit_traces.csv');
 figure('Renderer', 'painters', 'Position', [100 1 1080 320])
 setappdata(gcf, 'SubplotDefaultAxesLocation', [0, 0, 1, 1]);
 
-%% b
+%% c
 subplot_tight(1,3,2)
 effect_size=0.1;
 hold on
@@ -21,7 +21,7 @@ set(gca,'fontsize',18)
 xlabel('Group Effect of DBS on Drift Rate')
 set(gca,'linewidth',2)
 
-%% c
+%% d
 subplot_tight(2,3,3)
 subject_effects=2*table2array(traces(:,48:52))./(traces.dbs_coeff_std+traces.v_std);
 pts=-2:0.01:5;
@@ -40,7 +40,7 @@ set(gca,'ycolor','none')
 set(gca,'fontsize',18)
 set(gca,'linewidth',2)
 
-%% d
+%% e
 data_tbl = readtable('Data/DBS_data.csv');
 subjects = unique(data_tbl.subj_idx);
 rt_diffs = zeros(size(subjects));

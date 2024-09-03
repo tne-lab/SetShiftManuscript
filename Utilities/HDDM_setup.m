@@ -57,9 +57,13 @@ function [full_tbl, light_seq, rule_seq] = HDDM_setup(remove_omissions)
                 if height(setshift) == len
                     full_tbl.frontMostLast(ind:ind+len-1)=double(setshift.lasttwofront>setshift.lasttworear);
                     full_tbl.rearMostLast(ind:ind+len-1)=double(setshift.lasttwofront<setshift.lasttworear);
+                    full_tbl.frontTotal(ind:ind+len-1) = setshift.lasttwofront;
+                    full_tbl.rearTotal(ind:ind+len-1) = setshift.lasttworear;
                 else
                     full_tbl.frontMostLast(ind:ind+len-1)=NaN;
                     full_tbl.rearMostLast(ind:ind+len-1)=NaN;
+                    full_tbl.frontTotal(ind:ind+len-1)=NaN;
+                    full_tbl.rearTotal(ind:ind+len-1)=NaN;
                 end
                 full_tbl.ruleFull(ind:ind+len-1)=[behav_sub(sub_rats(i)).sessions{j}.rule];
                 ind=ind+len;

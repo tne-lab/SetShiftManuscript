@@ -126,13 +126,13 @@ for i=1:length(subjects)
     sub_tbl = motor_data(strcmp(subjects(i), motor_data.Subject),:);
     sub_tbl2 = full_tbl(find(strcmp(subjects(i),valid_rats)) == full_tbl.Rat,:);
     changes(i,1) = 100 * (mean(sub_tbl.middle_body_time_stationary(strcmp(sub_tbl.Stim,'ON'))) / ...
-        mean(sub_tbl.middle_body_time_stationary(strcmp(sub_tbl.Stim,'OFF'))));
+        mean(sub_tbl.middle_body_time_stationary(strcmp(sub_tbl.Stim,'OFF')))) - 100;
     changes(i,2) = 100 * (mean(sub_tbl.traveled_distance_cm(strcmp(sub_tbl.Stim,'ON'))) / ...
-        mean(sub_tbl.traveled_distance_cm(strcmp(sub_tbl.Stim,'OFF'))));
+        mean(sub_tbl.traveled_distance_cm(strcmp(sub_tbl.Stim,'OFF')))) - 100;
     changes(i,3) = 100 * (mean(sub_tbl.speed_moving_cm_s(strcmp(sub_tbl.Stim,'ON'))) / ...
-        mean(sub_tbl.speed_moving_cm_s(strcmp(sub_tbl.Stim,'OFF'))));
+        mean(sub_tbl.speed_moving_cm_s(strcmp(sub_tbl.Stim,'OFF')))) - 100;
     changes(i,4) = 100 * (mean(sub_tbl2.DT(sub_tbl2.Stim)) / ...
-        mean(sub_tbl2.DT(~sub_tbl2.Stim)));
+        mean(sub_tbl2.DT(~sub_tbl2.Stim))) - 100;
 end
 
 changes2 =cell(4,1);
@@ -150,9 +150,9 @@ end
 yline(100,'k--')
 xticks(1:4)
 xticklabels(["Immobility", "Distance Travelled", "Speed", "Initiation Delay"])
-ylabel("% change from stim OFF")
-ylim([50,200])
-yticks(50:50:200)
+ylabel("% Change from Stim OFF")
+ylim([-50,100])
+yticks(-50:50:100)
 set(gca,'fontsize',18)
 
 function hm = normalized_ks(mdl, x, y, a, b)
